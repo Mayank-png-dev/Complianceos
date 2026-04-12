@@ -20,6 +20,9 @@ const PORT = process.env.PORT || 8000;
 
 const startServer = async () => {
   await connectDB();
+  
+const authRoutes = require("./routes/auth.routes");
+app.use("/api/auth", authRoutes);
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
