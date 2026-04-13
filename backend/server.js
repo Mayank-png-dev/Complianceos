@@ -24,6 +24,10 @@ const startServer = async () => {
 const authRoutes = require("./routes/auth.routes");
 app.use("/api/auth", authRoutes);
 
+const clientRoutes = require("./routes/Client.routes");
+
+app.use("/api/clients", clientRoutes);
+
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
