@@ -28,4 +28,4 @@ const clientSchema = new mongoose.Schema({
   lastSynced: Date,
 }, { timestamps: true });
 
-module.exports = mongoose.model("Client", clientSchema);
+module.exports = mongoose.models.Client || mongoose.model("Client", clientSchema);

@@ -16,4 +16,4 @@ const filingSchema = new mongoose.Schema({
   penalty: Number,
 }, { timestamps: true });
 
-module.exports = mongoose.model("FilingRecord", filingSchema);
+module.exports = mongoose.models.FilingRecord || mongoose.model("FilingRecord", filingSchema);

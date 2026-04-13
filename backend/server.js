@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("./services/alertScheduler");
 const connectDB = require("./config/db");
 const express = require("express");
 const cors = require("cors");
@@ -33,4 +34,5 @@ app.use("/api/clients", clientRoutes);
   });
 };
 
+console.log("Client routes loaded");
 startServer();

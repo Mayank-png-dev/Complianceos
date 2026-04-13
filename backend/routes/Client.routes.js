@@ -101,4 +101,21 @@ router.get("/:id/filings", protect, async (req, res) => {
   res.json(filings);
 });
 
+const { getUpcomingDeadlines } = require("../services/deadline.service");
+
+router.get("/:id/deadlines", protect, async (req, res) => {
+  const client = await Client.findOne({
+    _id: req.params.id,
+    caId: req.user._id,
+  });
+
+  if (!client) {
+    return res.status(404).json({ message: "Client not found" });
+  }
+
+  const deadlines = getUpcomingDeadlines(client);
+
+  res.json(deadlines);
+});
+
 module.exports = router;
