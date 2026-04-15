@@ -22,11 +22,13 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await api.post("/auth/login", formData);
-      localStorage.setItem("token", response.data.token);
+      const res = await api.post("/auth/login", formData);
+      localStorage.setItem("token", res.data.token);
       navigate(location.state?.from || "/dashboard", { replace: true });
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Login failed");
+      const message = requestError.response?.data?.message || "Login failed";
+      setError(message);
+      alert(message);
     } finally {
       setLoading(false);
     }

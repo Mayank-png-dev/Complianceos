@@ -34,5 +34,14 @@ app.use("/api/clients", clientRoutes);
   });
 };
 
+app.use((err, req, res, next) => {
+  console.error("❌ ERROR:", err.message);
+
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Server Error",
+  });
+});
+
 console.log("Client routes loaded");
 startServer();
