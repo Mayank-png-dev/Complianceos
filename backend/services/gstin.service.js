@@ -29,31 +29,36 @@ const fetchFromPublic = async (gstin) => {
 
   console.log("[GST] Fetching GSTIN from public API:", gstin);
 
-  const response = await axios.get(url, {
-    timeout: 15000,
-  });
+  try {
+    const response = await axios.get(url, {
+      timeout: 15000,
+    });
 
-  console.log("[GST] Raw API response:", response.data);
+    console.log("[GST] Raw API response:", response.data);
 
-  const data = response.data;
+    const data = response.data;
 
-  if (!data || data.flag === false) {
-    throw new Error("Invalid GSTIN or no data returned");
+    if (!data || data.flag === false) {
+      throw new Error("Invalid GSTIN or no data returned");
+    }
+
+    const parsed = {
+      businessName: parseBusinessName(data),
+      gstType: parseGSTType(data),
+      state: parseState(data),
+      registrationDate: parseRegistrationDate(data),
+      dataSource: "live_basic",
+    };
+
+    if (!parsed.businessName) {
+      throw new Error("Public API response missing business name");
+    }
+
+    return parsed;
+  } catch (error) {
+    console.error("[GST] External API failure:", error.message);
+    throw error;
   }
-
-  const parsed = {
-    businessName: parseBusinessName(data),
-    gstType: parseGSTType(data),
-    state: parseState(data),
-    registrationDate: parseRegistrationDate(data),
-    dataSource: "live_basic",
-  };
-
-  if (!parsed.businessName) {
-    throw new Error("Public API response missing business name");
-  }
-
-  return parsed;
 };
 
 const generateMock = (gstin) => {

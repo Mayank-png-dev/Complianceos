@@ -1,55 +1,57 @@
 const cron = require("node-cron");
-const Client = require("../models/client");
+
+const Client = require("../models/Client");
 const AlertLog = require("../models/AlertLog");
 const { getUpcomingDeadlines, shouldAlert } = require("./deadline.service");
 const { sendWhatsAppAlert } = require("./whatsapp.services");
 
 cron.schedule("*/1 * * * *", async () => {
-  console.log("Running alert check...");
+  console.log("[ALERT] Running alert check...");
 
-  const clients = await Client.find({ isActive: true });
+  try {
+    const clients = await Client.find({ isActive: true });
 
-  for (let client of clients) {
-    const deadlines = getUpcomingDeadlines(client);
+    for (const client of clients) {
+      const deadlines = getUpcomingDeadlines(client);
 
-    for (let d of deadlines) {
-      if (shouldAlert(d)) {
+      for (const deadline of deadlines) {
+        if (!shouldAlert(deadline)) {
+          continue;
+        }
 
-        // 🔥 Decide alert type
-        let alertType =
-          d.daysUntilDue === 7 ? "7day" :
-          d.daysUntilDue === 3 ? "3day" :
-          d.daysUntilDue === 1 ? "1day" :
+        const alertType =
+          deadline.daysUntilDue === 7 ? "7day" :
+          deadline.daysUntilDue === 3 ? "3day" :
+          deadline.daysUntilDue === 1 ? "1day" :
           "overdue";
 
-        // 🔥 Check if already sent
         const alreadySent = await AlertLog.findOne({
           clientId: client._id,
-          returnType: d.returnType,
-          period: d.period,
-          alertType: alertType,
+          returnType: deadline.returnType,
+          period: deadline.period,
+          alertType,
         });
 
         if (alreadySent) {
-          continue; // skip duplicate
+          continue;
         }
 
-        // 🔥 Send alert (for now console)
-        const message = `⚠️ ${client.businessName}: ${d.returnType} due in ${d.daysUntilDue} days`;
+        const message = `${client.businessName}: ${deadline.returnType} due in ${deadline.daysUntilDue} days`;
 
         await sendWhatsAppAlert(client.contactPhone, message);
 
-        // 🔥 Save alert log
         await AlertLog.create({
           clientId: client._id,
-          returnType: d.returnType,
-          period: d.period,
-          alertType: alertType,
+          returnType: deadline.returnType,
+          period: deadline.period,
+          alertType,
           sentAt: new Date(),
           channel: "console",
           status: "sent",
         });
       }
     }
+  } catch (error) {
+    console.error("[ALERT] Scheduler failure:", error.message);
   }
 });

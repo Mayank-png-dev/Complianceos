@@ -1,47 +1,51 @@
-require("dotenv").config();
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
 require("./services/alertScheduler");
-const connectDB = require("./config/db");
+
 const express = require("express");
 const cors = require("cors");
+const connectDB = require("./config/db");
+const { errorHandler } = require("./middlewares/error.middleware");
+
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is required");
+}
+
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-// Import routes
 const gstinRoutes = require("./routes/gstin.routes");
+const authRoutes = require("./routes/auth.routes");
+const clientRoutes = require("./routes/Client.routes");
 
-// Use routes
 app.use("/api/gstin", gstinRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/clients", clientRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Server is running 🚀");
+  res.json({
+    success: true,
+    message: "Server is running",
+  });
 });
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 8000;
 
 const startServer = async () => {
   await connectDB();
-  
-const authRoutes = require("./routes/auth.routes");
-app.use("/api/auth", authRoutes);
-
-const clientRoutes = require("./routes/Client.routes");
-
-app.use("/api/clients", clientRoutes);
 
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`[SERVER] Server running on port ${PORT}`);
   });
 };
 
-app.use((err, req, res, next) => {
-  console.error("❌ ERROR:", err.message);
-
-  res.status(err.statusCode || 500).json({
-    success: false,
-    message: err.message || "Server Error",
-  });
+startServer().catch((error) => {
+  console.error("[SERVER] Startup failed:", error.message);
+  process.exit(1);
 });
-
-console.log("Client routes loaded");
-startServer();
