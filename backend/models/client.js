@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+
 const clientSchema = new mongoose.Schema({
   caId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -26,6 +27,10 @@ const clientSchema = new mongoose.Schema({
     default: 100,
   },
   lastSynced: Date,
+  dataSource: {
+    type: String,
+    default: "mock",
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.models.Client || mongoose.model("Client", clientSchema);
